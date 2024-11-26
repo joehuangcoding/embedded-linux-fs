@@ -16,7 +16,7 @@ Embedded Linux file system study : )
 - superblock
 - inode
 
-## mkfs Command formatting tool
+# mkfs Command formatting tool
 ```
 To make your utility work with mkfs -t myfs, you need to:
 Name your binary mkfs.myfs.
@@ -24,7 +24,7 @@ Place it in a directory included in the PATH (e.g., /usr/local/bin).
 The mkfs command looks for binaries named mkfs.<fsname> to perform formatting.
 ```
 
-## List all the file systems. They are the installed kernal space modules. `nodev` means not physical device
+# List all the file systems. They are the installed kernal space modules. `nodev` means not physical device
 ```
 cat /proc/filesystems
 nodev   ramfs
