@@ -16,8 +16,8 @@ Embedded Linux file system study : )
 - superblock
 - inode
 
+## mkfs Command formatting tool
 ```
-mkfs Command
 To make your utility work with mkfs -t myfs, you need to:
 Name your binary mkfs.myfs.
 Place it in a directory included in the PATH (e.g., /usr/local/bin).
