@@ -9,7 +9,7 @@ Embedded Linux file system study : )
   * Those read, write, open, and close operations interact with physical devices such as SD cards or flash chips.
   * A file system should provide a formatting tool, which is a user-space program used to format storage devices. For example: `sudo mkfs.myfs /dev/mmcblk0p3` myfs is the filesystem. (/usr/local/bin/mkfs.myfs is the formatting tool) 
 
-# How does Linux determine which file system (kernel module) to use when running ls in a folder?
+# How does Linux determine which file system (kernel module) to use when running `ls` in a folder?
 
 
 # VFS
