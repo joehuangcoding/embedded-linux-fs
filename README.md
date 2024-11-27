@@ -1,7 +1,21 @@
 # embedded-linux-fs
 Embedded Linux file system study : )
 
-# Theory
+# Scenario 1 - usb device
+1. Insert a usb stick
+2. Usb driver (kernel space module) detect the usb stick
+3. Installing myfs file system (kernel module and the formating tool user space program)
+file system registered (register_filesystem)
+`cat /proc/filesystems` to see the list of file systems
+  
+4. Use the formating tool to format the usb stick
+ * By formatting the usb drive, the superblock metadata has been written into it.
+
+5. Linux system maintains a list of all supported file system. The VSF will read the superblock metadata to determine what file system (kernel module) to use
+
+6. myfs module init the usd drive
+
+# 
 - A file system is a kernel-space module in Linux.
 - The Linux system includes a Virtual File System (VFS) layer.
   * VFS acts as an abstraction layer between user-space programs and various file systems.
