@@ -48,6 +48,9 @@ lsmod | grep pseudo_fs
 
 //mount the file system
 sudo mount -t pseudo_fs none /mnt
+
+cat /mnt/hello.txt
+
 sudo umount /mnt
 //Checking if in used
 sudo lsof /mnt
@@ -61,7 +64,7 @@ sudo rmmod pseudo_fs
 
 ```
 
-# Code for testing - need some fixes
+# Code for testing - support cat /mnt/hello.txt
 ```
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -99,11 +102,10 @@ static const struct file_operations pseudo_file_ops = {
 
 // Directory operations
 static struct dentry *pseudo_lookup(struct inode *parent_inode, struct dentry *child_dentry, unsigned int flags) {
-    printk(KERN_INFO "pseudo_fs: Looking up %s in directory %s\n", child_dentry->d_name.name, parent_inode->i_sb->s_id);
+    printk(KERN_INFO "pseudo_fs: Looking up %s\n", child_dentry->d_name.name);
 
-    // If the requested file name is 'hello.txt', create it
     if (strcmp(child_dentry->d_name.name, PSEUDO_FILE_NAME) != 0)
-        return NULL;  // Only handle 'hello.txt'
+        return NULL; // Only handle 'hello.txt'
 
     struct inode *inode = new_inode(parent_inode->i_sb);
     if (!inode)
@@ -111,66 +113,42 @@ static struct dentry *pseudo_lookup(struct inode *parent_inode, struct dentry *c
 
     inode->i_ino = get_next_ino();
     inode->i_mode = S_IFREG | 0644;
-    inode->i_op = NULL;
     inode->i_fop = &pseudo_file_ops;
     inode->i_atime = inode->i_mtime = current_time(inode);
-    inode_set_ctime_to_ts(inode, current_time(inode));  // Set ctime
+    inode_set_ctime_to_ts(inode, current_time(inode)); // Set ctime using helper
 
     d_add(child_dentry, inode);
     return NULL;
 }
 
-static struct inode_operations pseudo_dir_inode_ops = {
+static const struct inode_operations pseudo_dir_inode_ops = {
     .lookup = pseudo_lookup,
 };
 
-static struct file_operations pseudo_dir_ops = {
-    .read = generic_read_dir,
-};
+// Dynamically define the directory operations
+static struct file_operations pseudo_dir_ops;
 
 // Superblock filling
 static int pseudo_fill_super(struct super_block *sb, void *data, int silent) {
-    printk(KERN_INFO "pseudo_fs: Filling superblock for pseudo_fs\n");
+    struct inode *root_inode;
 
-    // Create the root inode for the pseudo file system
-    struct inode *root_inode = new_inode(sb);
+    root_inode = new_inode(sb);
     if (!root_inode)
         return -ENOMEM;
 
     root_inode->i_ino = get_next_ino();
-    root_inode->i_mode = S_IFDIR | 0755;  // Directory with read-write-execute permissions
+    root_inode->i_mode = S_IFDIR | 0755;
     root_inode->i_op = &pseudo_dir_inode_ops;
     root_inode->i_fop = &pseudo_dir_ops;
     root_inode->i_atime = root_inode->i_mtime = current_time(root_inode);
-    inode_set_ctime_to_ts(root_inode, current_time(root_inode));
+    inode_set_ctime_to_ts(root_inode, current_time(root_inode)); // Set ctime using helper
 
-    // Set up the superblock and root
     sb->s_magic = PSEUDOFS_MAGIC;
     sb->s_root = d_make_root(root_inode);
     if (!sb->s_root)
         return -ENOMEM;
 
-    // Now, create 'hello.txt' in the root directory
-    struct dentry *hello_dentry = d_alloc_name(sb->s_root, PSEUDO_FILE_NAME);
-    if (!hello_dentry)
-        return -ENOMEM;
-
-    struct inode *file_inode = new_inode(sb);
-    if (!file_inode)
-        return -ENOMEM;
-
-    file_inode->i_ino = get_next_ino();
-    file_inode->i_mode = S_IFREG | 0644;  // Regular file with read-write permissions
-    file_inode->i_op = NULL;
-    file_inode->i_fop = &pseudo_file_ops;
-    file_inode->i_atime = file_inode->i_mtime = current_time(file_inode);
-    inode_set_ctime_to_ts(file_inode, current_time(file_inode)); // Update ctime
-
-    // Add the file to the root directory
-    d_add(hello_dentry, file_inode);
-
     return 0;
-
 }
 
 static struct dentry *pseudo_mount(struct file_system_type *fs_type, int flags,
@@ -189,12 +167,14 @@ static struct file_system_type pseudo_fs_type = {
     .kill_sb = pseudo_kill_superblock,
 };
 
-// Module initialization
 static int __init pseudo_fs_init(void) {
+    // Initialize directory operations dynamically
+    pseudo_dir_ops.owner = THIS_MODULE;
+    pseudo_dir_ops.iterate_shared = simple_dir_operations.iterate_shared;
+
     return register_filesystem(&pseudo_fs_type);
 }
 
-// Module cleanup
 static void __exit pseudo_fs_exit(void) {
     unregister_filesystem(&pseudo_fs_type);
 }
@@ -205,6 +185,7 @@ module_exit(pseudo_fs_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Your Name");
 MODULE_DESCRIPTION("Simple Pseudo File System Example");
+
 
 ```
 
