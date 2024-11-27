@@ -185,7 +185,19 @@ module_exit(pseudo_fs_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Your Name");
 MODULE_DESCRIPTION("Simple Pseudo File System Example");
+```
 
+```
+//Makefile
+obj-m := pseudo_fs.o
+KDIR := /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
+
+all:
+        make -C $(KDIR) M=$(PWD) modules
+
+clean:
+        make -C $(KDIR) M=$(PWD) clean
 
 ```
 
