@@ -13,8 +13,10 @@ Embedded Linux file system study : )
 
 
 # VFS
+- file system type (register_filesystem)
 - superblock
-- inode
+- inode (metadata for filesystem objects)
+- dentry (dictionary entry) for associating inode and file
 
 # mkfs Command formatting tool
 ```
